@@ -7,7 +7,7 @@ await build({
   test: false,
   typeCheck: false,
   declaration: "separate",
-  scriptModule: false,
+  scriptModule: "cjs",
   entryPoints: ["./main.ts"],
   outDir: "./npm",
   shims: {
