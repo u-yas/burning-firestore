@@ -123,18 +123,18 @@ const allCollections = [userCollection, postCollection, commentCollection];
 // node cwd
 const scriptDir = process.cwd();
 
-const exampleDir = path.join(scriptDir, "./examples/generated");
+const generatedDir = path.join(scriptDir, "./generated");
 generateFirestoreClientCode(
   {
     lang: "web-ts",
-    outputDir: exampleDir,
+    outputDir: generatedDir,
   },
   ...allCollections
 );
 
 generateFirestoreSecurityRules(
   {
-    outputDir: exampleDir,
+    outputDir: scriptDir,
   },
   ...allCollections
 );

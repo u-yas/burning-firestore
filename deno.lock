@@ -26,8 +26,7 @@
       "jsr:@std/path@^0.225.2": "jsr:@std/path@0.225.2",
       "jsr:@std/path@^1.0.2": "jsr:@std/path@1.0.2",
       "jsr:@ts-morph/bootstrap@^0.24.0": "jsr:@ts-morph/bootstrap@0.24.0",
-      "jsr:@ts-morph/common@^0.24.0": "jsr:@ts-morph/common@0.24.0",
-      "npm:eta@3.5.0": "npm:eta@3.5.0"
+      "jsr:@ts-morph/common@^0.24.0": "jsr:@ts-morph/common@0.24.0"
     },
     "jsr": {
       "@david/code-block-writer@13.0.2": {
@@ -150,12 +149,6 @@
           "jsr:@std/path@^0.225.2"
         ]
       }
-    },
-    "npm": {
-      "eta@3.5.0": {
-        "integrity": "sha512-e3x3FBvGzeCIHhF+zhK8FZA2vC5uFn6b4HJjegUbIWrDb4mJ7JjTGMJY9VGIbRVpmSwHopNiaJibhjIr+HfLug==",
-        "dependencies": {}
-      }
     }
   },
   "remote": {},
@@ -164,8 +157,7 @@
       "jsr:@deno/dnt@^0.41.3",
       "jsr:@std/assert@1",
       "jsr:@std/fs@^0.224.0",
-      "jsr:@std/path@^0.224.0",
-      "npm:eta@3.5.0"
+      "jsr:@std/path@^0.224.0"
     ]
   }
 }
