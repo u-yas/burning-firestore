@@ -1,0 +1,42 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+match /users/{documentId} {
+  allow read: if true;
+  allow write: if false;
+  allow create: if request.auth != null && isValidData();
+  allow update: if request.auth.uid == documentId && isValidData();
+  allow delete: if request.auth.uid == documentId;
+  function isValidData() {
+    return request.resource.data.keys().hasAll(["name","email","isActive","createdAt"]) &&
+           request.resource.data.keys().hasOnly(["name","email","age","isActive","createdAt","preferences"]) &&
+           (request.resource.data.name is string && request.resource.data.email is string && request.resource.data.age is number && request.resource.data.createdAt is timestamp);
+  }
+  match /posts/{documentId} {
+    allow read: if true;
+    allow write: if false;
+    allow create: if request.auth != null && isValidData();
+    allow update: if request.auth.uid == documentId && isValidData();
+    allow delete: if request.auth.uid == documentId;
+    function isValidData() {
+      return request.resource.data.keys().hasAll(["title","content","publishedAt","likes","author"]) &&
+             request.resource.data.keys().hasOnly(["title","content","publishedAt","body","tags","likes","author"]) &&
+             (request.resource.data.title is string && request.resource.data.content is string && request.resource.data.publishedAt is timestamp && request.resource.data.likes is number);
+    }
+    match /comments/{documentId} {
+      allow read: if true;
+      allow write: if false;
+      allow create: if request.auth != null && isValidData();
+      allow update: if request.auth.uid == documentId && isValidData();
+      allow delete: if request.auth.uid == documentId;
+      function isValidData() {
+        return request.resource.data.keys().hasAll(["content","createdAt","author","likes","isApproved"]) &&
+               request.resource.data.keys().hasOnly(["content","createdAt","author","likes","isApproved","replies"]) &&
+               (request.resource.data.content is string && request.resource.data.createdAt is timestamp && request.resource.data.likes is number);
+      }
+    }
+  }
+}
+  }
+}
