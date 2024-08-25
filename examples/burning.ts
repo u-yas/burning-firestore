@@ -1,7 +1,9 @@
-import { join } from "@std/path";
-import { Collection } from "../../../interface.ts";
-import { generateFirestoreClientCode } from "../../../lib/code.ts";
-import { generateFirestoreSecurityRules } from "../../../lib/rules.ts";
+import {
+  Collection,
+  generateFirestoreClientCode,
+  generateFirestoreSecurityRules,
+} from "burning-firestore";
+import path from "path";
 
 const userCollection: Collection = {
   name: "user",
@@ -9,10 +11,7 @@ const userCollection: Collection = {
   security: {
     read: [{ preset: "isPublic" }],
     write: [{ rule: "false" }],
-    create: [
-      { preset: "isAuthenticated" },
-      { preset: "isValidData" },
-    ],
+    create: [{ preset: "isAuthenticated" }, { preset: "isValidData" }],
     update: [
       { rule: "request.auth.uid == documentId" },
       { preset: "isValidData" },
@@ -45,10 +44,7 @@ const postCollection: Collection = {
   security: {
     read: [{ preset: "isPublic" }],
     write: [{ rule: "false" }],
-    create: [
-      { preset: "isAuthenticated" },
-      { preset: "isValidData" },
-    ],
+    create: [{ preset: "isAuthenticated" }, { preset: "isValidData" }],
     update: [
       { rule: "request.auth.uid == documentId" },
       { preset: "isValidData" },
@@ -91,10 +87,7 @@ const commentCollection: Collection = {
   security: {
     read: [{ preset: "isPublic" }],
     write: [{ rule: "false" }],
-    create: [
-      { preset: "isAuthenticated" },
-      { preset: "isValidData" },
-    ],
+    create: [{ preset: "isAuthenticated" }, { preset: "isValidData" }],
     update: [
       { rule: "request.auth.uid == documentId" },
       { preset: "isValidData" },
@@ -127,13 +120,21 @@ const commentCollection: Collection = {
 
 const allCollections = [userCollection, postCollection, commentCollection];
 
-const scriptDir = Deno.cwd();
-const exampleDir = join(scriptDir, "./tests/integrations/complex/generated");
-generateFirestoreClientCode({
-  lang: "web-ts",
-  outputDir: exampleDir,
-}, ...allCollections);
+// node cwd
+const scriptDir = process.cwd();
 
-generateFirestoreSecurityRules({
-  outputDir: exampleDir,
-}, ...allCollections);
+const exampleDir = path.join(scriptDir, "./examples/generated");
+generateFirestoreClientCode(
+  {
+    lang: "web-ts",
+    outputDir: exampleDir,
+  },
+  ...allCollections
+);
+
+generateFirestoreSecurityRules(
+  {
+    outputDir: exampleDir,
+  },
+  ...allCollections
+);

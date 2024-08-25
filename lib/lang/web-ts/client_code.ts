@@ -1,4 +1,3 @@
-import { Eta } from "eta";
 import { Collection, Parameter, Scheme } from "../../../interface.ts";
 import { join } from "@std/path";
 export function generateSchemaTemplateData(
@@ -134,18 +133,118 @@ export function generateSchemaTemplateData(
   };
 }
 
+function renderScheme(
+  templateData: ReturnType<typeof generateSchemaTemplateData>,
+): string {
+  const t = templateData;
+  const pascalCaseName = t.entityName.charAt(0).toUpperCase() +
+    t.entityName.slice(1);
+  const camelCaseName = t.entityName.charAt(0).toLowerCase() +
+    t.entityName.slice(1);
+
+  const template =
+    `import { DocumentReference,Timestamp } from 'firebase/firestore';
+${
+      t.imports.map((imp) =>
+        `import { ${imp.name} } from '../${imp.file}/scheme'`
+      ).join("\n")
+    }
+
+
+export interface ${pascalCaseName} {
+${
+      t.fields.map((field) =>
+        `\t${field.name}${field.required ? "" : "?"}: ${field.type};`
+      ).join("\n")
+    }
+}
+
+export type Ref = (${t.refParams}) => string;
+
+export const ${camelCaseName}Ref: Ref = ${t.collectionPath};
+`;
+  return template;
+}
+
+function renderFirestore(
+  templateData: ReturnType<typeof generateSchemaTemplateData>,
+): string {
+  const t = templateData;
+  const pascalCaseName = t.entityName.charAt(0).toUpperCase() +
+    t.entityName.slice(1);
+  const camelCaseName = t.entityName.charAt(0).toLowerCase() +
+    t.entityName.slice(1);
+
+  const template =
+    `import { Firestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, QueryFieldFilterConstraint, QuerySnapshot, DocumentData } from 'firebase/firestore';
+import { ${pascalCaseName}, ${camelCaseName}Ref, Ref } from './scheme';
+
+// Collection reference
+export const ${camelCaseName}Collection = (db: Firestore, ...params: Parameters<Ref>) => 
+  collection(db, ${camelCaseName}Ref(...params));
+
+// Document reference
+export const ${camelCaseName}Doc = (db: Firestore, ...params: Parameters<Ref>) => 
+  doc(db, ${camelCaseName}Ref(...params));
+
+// Get a document
+export const get${pascalCaseName} = async (db: Firestore, ...params: Parameters<Ref>) => {
+  const docRef = ${camelCaseName}Doc(db, ...params);
+  const docSnap = await getDoc(docRef);
+  return docSnap.exists() ? docSnap.data() as ${pascalCaseName} : null;
+};
+
+// Get all documents in a collection
+export const getAll${pascalCaseName}s = async (db: Firestore, ...params: Parameters<Ref>) => {
+  const collectionRef = ${camelCaseName}Collection(db, ...params);
+  const querySnapshot = await getDocs(collectionRef);
+  return querySnapshot.docs.map(doc => doc.data() as ${pascalCaseName});
+};
+
+// Add a new document
+export const add${pascalCaseName} = async (db: Firestore, data: ${pascalCaseName}, ...params: Parameters<Ref>) => {
+  const collectionRef = ${camelCaseName}Collection(db, ...params);
+  return await addDoc(collectionRef, data);
+};
+
+// Set a document
+export const set${pascalCaseName} = async (db: Firestore, data: ${pascalCaseName}, ...params: Parameters<Ref>) => {
+  const docRef = ${camelCaseName}Doc(db, ...params);
+  await setDoc(docRef, data);
+};
+
+// Update a document
+export const update${pascalCaseName} = async (db: Firestore, data: Partial<${pascalCaseName}>, ...params: Parameters<Ref>) => {
+  const docRef = ${camelCaseName}Doc(db, ...params);
+  await updateDoc(docRef, data);
+};
+
+// Delete a document
+export const delete${pascalCaseName} = async (db: Firestore, ...params: Parameters<Ref>) => {
+  const docRef = ${camelCaseName}Doc(db, ...params);
+  await deleteDoc(docRef);
+};
+
+export const query${pascalCaseName}s = 
+  (db: Firestore, ...refParams: Parameters<Ref>) =>
+  async (...queries: QueryFieldFilterConstraint[]) => {
+    const collectionRef = ${camelCaseName}Collection(db, ...refParams);
+    const q = query(collectionRef, ...queries);
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map((doc) => doc.data() as ${pascalCaseName});
+  };
+`;
+
+  return template;
+}
 export function generateWebTsClientCode(options: {
   outputDir: string;
 }, ...collections: Collection[]) {
-  const scriptDir = Deno.cwd();
-  const eta = new Eta({
-    views: join(scriptDir, "templates/web"),
-    autoEscape: false,
-  });
   const { outputDir } = options;
   collections.forEach((collection) => {
     const templateData = generateSchemaTemplateData(collection, collections);
-    const resScheme = eta.render("schema", templateData);
+
+    const resScheme = renderScheme(templateData);
     const dir = join(outputDir, templateData.entityName);
     Deno.mkdirSync(dir, { recursive: true });
     Deno.writeFileSync(
@@ -158,7 +257,7 @@ export function generateWebTsClientCode(options: {
     );
 
     // firestore
-    const resFirestore = eta.render("firestore", templateData);
+    const resFirestore = renderFirestore(templateData);
     Deno.writeFileSync(
       `${dir}/firestore.ts`,
       new TextEncoder().encode(resFirestore),

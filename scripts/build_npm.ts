@@ -1,6 +1,5 @@
 // ex. scripts/build_npm.ts
 import { build, emptyDir } from "@deno/dnt";
-
 await emptyDir("./npm");
 
 await build({
@@ -14,6 +13,7 @@ await build({
     // see JS docs for overview and more options
     deno: true,
   },
+  importMap: "./deno.json",
   package: {
     // package.json properties
     name: "burning-firestore",
